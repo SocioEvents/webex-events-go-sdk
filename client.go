@@ -55,6 +55,9 @@ func Query(query string, operationName string, variables map[string]any, headers
 		return Response{}, err
 	}
 
+	var rateLimiter = RateLimiter{}
+	FillRateLimiter(resp, &rateLimiter)
+
 	var response = Response{
 		status:         resp.StatusCode,
 		headers:        resp.Header,
@@ -64,7 +67,7 @@ func Query(query string, operationName string, variables map[string]any, headers
 		url:            resp.Request.URL.String(),
 		retryCount:     0,
 		timeSpentInMs:  elapsed,
-		rateLimiter:    RateLimiter{},
+		rateLimiter:    rateLimiter,
 	}
 	return response, nil
 }
