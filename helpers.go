@@ -7,7 +7,17 @@ import (
 	"strings"
 )
 
+var (
+	userAgent  string
+	requestUrl = make(map[string]string)
+)
+
 func GetRequestUrl() string {
+	var value = requestUrl[GetAccessToken()]
+	if len(value) > 0 {
+		return value
+	}
+
 	var path = "/graphql"
 	var url string
 	if strings.HasPrefix(GetAccessToken(), "sk_live") {
@@ -16,16 +26,25 @@ func GetRequestUrl() string {
 		url = "https://public.sandbox-api.socio.events"
 	}
 
-	return url + path
+	var uri = url + path
+
+	requestUrl[GetAccessToken()] = uri
+
+	return uri
 }
 
 func GetUserAgent() string {
+	if len(userAgent) > 0 {
+		return userAgent
+	}
 
 	hostname, _ := os.Hostname()
-	return fmt.Sprintf(
+	userAgent = fmt.Sprintf(
 		"Webex Go SDK(v%s) - OS(%s) - hostname(%s) - Go Version(%s)",
 		VERSION,
 		runtime.GOOS,
 		hostname,
 		runtime.Version())
+
+	return userAgent
 }
