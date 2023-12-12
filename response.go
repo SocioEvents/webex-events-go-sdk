@@ -13,6 +13,6 @@ type Response struct {
 	Url            string
 	RetryCount     int
 	TimeSpentInMs  time.Duration
-	RateLimiter    RateLimiter
-	ErrorResponse  ErrorResponse
+	RateLimiter    *RateLimiter
+	ErrorResponse  *ErrorResponse
 }
