@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 )
@@ -16,6 +17,7 @@ import (
 const VERSION = "0.1.0"
 
 var AccessTokenRequiredError = errors.New("access token is required")
+var RetriableHttpStatuses = []int{408, 409, 429, 502, 503, 504}
 
 type BadRequestError struct {
 	response []byte
@@ -45,6 +47,10 @@ type QueryRequest struct {
 func NewClient(config *Config) *Client {
 	c := &Client{
 		config: config,
+	}
+
+	if c.config.GetTimeout() < (time.Duration(1) * time.Second) {
+		c.config.SetTimeout(time.Duration(30) * time.Second)
 	}
 	c.SetHttpClient(&http.Client{Timeout: config.GetTimeout() * time.Second})
 	return c
@@ -82,7 +88,24 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 	req.Header.Set("User-Agent", getUserAgent())
 
 	var start = time.Now()
-	resp, err := c.client.Do(req)
+	// Retry loop
+	var wait = 250.0
+	var waitRate = 1.4
+	var resp *http.Response
+	var retries = uint(0)
+
+	if c.config.maxRetries < 1 {
+		c.config.SetMaxRetries(5)
+	}
+	for ; retries < c.config.maxRetries; retries++ {
+		resp, err = c.client.Do(req)
+		if err != nil || slices.Contains(RetriableHttpStatuses, resp.StatusCode) {
+			time.Sleep(time.Duration(wait*waitRate) * time.Millisecond)
+			continue
+		}
+		break
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +132,7 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 		RequestHeaders: resp.Request.Header,
 		RequestBody:    string(jsonBody),
 		Url:            resp.Request.URL.String(),
-		RetryCount:     0,
+		RetryCount:     int(retries) - 1,
 		TimeSpentInMs:  elapsed,
 		RateLimiter:    rateLimiter,
 	}

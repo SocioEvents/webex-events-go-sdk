@@ -44,6 +44,61 @@ func TestWhenAccessTokenIsBlank(t *testing.T) {
 	assert.ErrorIs(t, err, AccessTokenRequiredError)
 }
 
+func TestQueryWith409StatusCode(t *testing.T) {
+	ctx := context.Background()
+	config := NewConfig()
+	config.SetAccessToken("sk_live_some_access_token")
+	config.SetMaxRetries(3)
+	client := NewClient(config)
+
+	var headers = http.Header{}
+	headers.Set("Idempotency-Key", "61672155-56d3-4375-a864-52e7bba4f445")
+	var variables = make(map[string]any)
+
+	var query = "{ currenciesList{ isoCode }}"
+	var operationName = "CurrenciesList"
+
+	var responseBody = `{ "message": "Conflict", "extensions": { code: "CONFLICT" }}`
+
+	httpClient := new(TestHttpClient)
+	stringReader := strings.NewReader(responseBody)
+	body := io.NopCloser(stringReader)
+
+	reqUrl, err := url.Parse("http://localhost")
+	assert.NoError(t, err)
+
+	header := http.Header{
+		"Authorization":      []string{fmt.Sprintf("Bearer %s", config.GetAccessToken())},
+		"User-Agent":         []string{"Webex Go SDK"},
+		"Content-Type":       []string{"application/json"},
+		"X-Sdk-Name":         []string{"Go SDK"},
+		"X-Sdk-Version":      []string{VERSION},
+		"X-Sdk-Lang-Version": []string{runtime.Version()},
+		"Idempotency-Key":    []string{"61672155-56d3-4375-a864-52e7bba4f445"},
+	}
+	var mockResponse = &http.Response{
+		Request: &http.Request{
+			Header: header,
+			URL:    reqUrl,
+		},
+		Status:     "400",
+		StatusCode: 409,
+		Body:       body,
+	}
+
+	httpClient.On("Do", mock.Anything).Return(mockResponse, nil)
+	client.SetHttpClient(httpClient)
+
+	response, err := client.Query(ctx, &QueryRequest{
+		Query:         query,
+		OperationName: operationName,
+		Variables:     variables,
+		headers:       headers,
+	})
+
+	assert.Equal(t, 2, response.RetryCount)
+}
+
 func TestQueryWith200StatusCode(t *testing.T) {
 	ctx := context.Background()
 	config := NewConfig()
