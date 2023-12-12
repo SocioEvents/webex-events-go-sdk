@@ -42,7 +42,11 @@ func Query(query string, operationName string, variables map[string]any, headers
 	var client = http.Client{Timeout: GetTimeout() * time.Second}
 	var start = time.Now()
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+		}
+	}(resp.Body)
 	var elapsed = time.Since(start)
 
 	if err != nil {
