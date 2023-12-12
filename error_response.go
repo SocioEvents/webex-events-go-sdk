@@ -16,3 +16,9 @@ type ErrorResponse struct {
 	Extensions    Extensions
 	GraphqlErrors []map[string]any `json:"errors"`
 }
+
+func NewErrorResponse() *ErrorResponse {
+	return &ErrorResponse{
+		GraphqlErrors: make([]map[string]any, 0),
+	}
+}

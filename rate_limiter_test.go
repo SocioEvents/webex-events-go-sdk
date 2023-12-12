@@ -19,7 +19,7 @@ func Test_fillRateLimiter(t *testing.T) {
 	}
 
 	var rateLimiter = RateLimiter{}
-	fillRateLimiter(&mockResponse, &rateLimiter)
+	rateLimiter.fill(&mockResponse)
 	assert.Equal(t, rateLimiter.DailyBasedCostThreshold, 200)
 	assert.Equal(t, rateLimiter.UsedDailyBasedCost, 10)
 	assert.Equal(t, rateLimiter.SecondBasedCostThreshold, 50)

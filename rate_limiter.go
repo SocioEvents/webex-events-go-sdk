@@ -20,7 +20,11 @@ type RateLimiter struct {
 	SecondlyRetryAfter       int
 }
 
-func fillRateLimiter(resp *http.Response, rateLimiter *RateLimiter) {
+func NewRateLimiter() *RateLimiter {
+	return new(RateLimiter)
+}
+
+func (rateLimiter *RateLimiter) fill(resp *http.Response) {
 	var dailyCallLimit = resp.Header.Get(DailyCallLimit)
 	if len(dailyCallLimit) > 0 {
 		var limit = strings.Split(dailyCallLimit, "/")

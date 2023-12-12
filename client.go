@@ -2,71 +2,110 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"runtime"
+	"strings"
 	"time"
 )
 
 const VERSION = "0.1.0"
 
-func Query(query string, operationName string, variables map[string]any, headers map[string]string) (Response, error) {
+var AccessTokenRequiredError = errors.New("access token is required")
 
-	if len(GetAccessToken()) < 1 {
-		return Response{}, errors.New("Access Token is required.")
+type BadRequestError struct {
+	response []byte
+}
+
+func (err BadRequestError) Error() string {
+	return fmt.Sprintf("the provided JSON is not valid. provided body is:%s", string(err.response))
+}
+
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type Client struct {
+	config *Config
+	client HTTPClient
+	url    *string
+}
+
+type QueryRequest struct {
+	Query         string
+	OperationName string
+	Variables     map[string]any
+	headers       http.Header
+}
+
+func NewClient(config *Config) *Client {
+	c := &Client{
+		config: config,
+	}
+	c.SetHttpClient(&http.Client{Timeout: config.GetTimeout() * time.Second})
+	return c
+}
+
+func (c *Client) SetHttpClient(httpClient HTTPClient) {
+	c.client = httpClient
+}
+func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) {
+
+	if c.config.GetAccessToken() == "" {
+		return nil, AccessTokenRequiredError
 	}
 
 	var requestBody = make(map[string]any)
-	requestBody["operationName"] = operationName
-	requestBody["variables"] = variables
-	requestBody["query"] = query
-	var jsonBody, _ = json.Marshal(requestBody)
-
-	req, err := http.NewRequest("POST", GetRequestUrl(), bytes.NewBuffer(jsonBody))
+	requestBody["operationName"] = r.OperationName
+	requestBody["variables"] = r.Variables
+	requestBody["query"] = r.Query
+	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
-		return Response{}, err
+		return nil, err
 	}
 
-	for k, v := range headers {
-		req.Header.Set(k, v)
+	req, err := http.NewRequestWithContext(ctx, "POST", c.getRequestUrl(), bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
 	}
+
+	req.Header = r.headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+GetAccessToken())
+	req.Header.Set("Authorization", "Bearer "+c.config.GetAccessToken())
 	req.Header.Set("X-Sdk-Name", "Go SDK")
 	req.Header.Set("X-Sdk-Version", VERSION)
 	req.Header.Set("X-Sdk-Lang-Version", runtime.Version())
 	req.Header.Set("User-Agent", getUserAgent())
 
-	var client = http.Client{Timeout: GetTimeout() * time.Second}
 	var start = time.Now()
-	resp, err := client.Do(req)
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-		}
-	}(resp.Body)
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
 	var elapsed = time.Since(start)
 
 	if err != nil {
-		return Response{}, err
+		return nil, err
 	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return Response{}, err
+		return nil, err
 	}
 
-	var rateLimiter = RateLimiter{}
-	fillRateLimiter(resp, &rateLimiter)
+	var rateLimiter = NewRateLimiter()
+	rateLimiter.fill(resp)
 
-	var errorResponse ErrorResponse
-	var response = Response{
+	response := &Response{
 		Status:         resp.StatusCode,
 		Headers:        resp.Header,
-		Body:           string(bodyBytes),
+		Body:           string(body),
 		RequestHeaders: resp.Request.Header,
 		RequestBody:    string(jsonBody),
 		Url:            resp.Request.URL.String(),
@@ -74,9 +113,42 @@ func Query(query string, operationName string, variables map[string]any, headers
 		TimeSpentInMs:  elapsed,
 		RateLimiter:    rateLimiter,
 	}
-	err = fillErrorResponse(&response, &errorResponse)
-	if err != nil {
-		return response, err
+	if response.Status >= http.StatusBadRequest && response.Status <= http.StatusInternalServerError {
+		errorResponse, err := c.errorResponse(body)
+		if err != nil {
+			return response, err
+		}
+		response.ErrorResponse = errorResponse
 	}
+
 	return response, nil
+}
+
+func (c *Client) getRequestUrl() string {
+	if c.url != nil {
+		return *c.url
+	}
+	var path = "/graphql"
+	var url string
+	if strings.HasPrefix(c.config.GetAccessToken(), "sk_live") {
+		url = "https://public.api.socio.events"
+	} else {
+		url = "https://public.sandbox-api.socio.events"
+	}
+	uri := url + path
+	c.url = &uri
+	return uri
+}
+
+func (c *Client) errorResponse(body []byte) (*ErrorResponse, error) {
+	errorResponse := NewErrorResponse()
+	if json.Valid(body) {
+		err := json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return nil, err
+		}
+		return errorResponse, nil
+	} else {
+		return nil, BadRequestError{response: body}
+	}
 }

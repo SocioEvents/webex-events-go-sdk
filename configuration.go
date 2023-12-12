@@ -2,32 +2,38 @@ package main
 
 import "time"
 
-var (
+type Config struct {
 	accessToken string
-	timeout     = time.Duration(30)
-	maxRetries  uint
-)
-
-func SetAccessToken(token string) {
-	accessToken = token
+	timeout     time.Duration
+	maxRetries  int
 }
 
-func SetTimeout(_timeout time.Duration) {
-	timeout = _timeout
+func NewConfig() *Config {
+	return &Config{
+		timeout: time.Duration(30),
+	}
 }
 
-func SetMaxRetries(_maxRetries uint) {
-	maxRetries = _maxRetries
+func (c *Config) SetAccessToken(token string) {
+	c.accessToken = token
 }
 
-func GetAccessToken() string {
-	return accessToken
+func (c *Config) SetTimeout(timeout time.Duration) {
+	c.timeout = timeout
 }
 
-func GetTimeout() time.Duration {
-	return timeout
+func (c *Config) SetMaxRetries(maxRetries int) {
+	c.maxRetries = maxRetries
 }
 
-func GetMaxRetries() uint {
-	return maxRetries
+func (c *Config) GetAccessToken() string {
+	return c.accessToken
+}
+
+func (c *Config) GetTimeout() time.Duration {
+	return c.timeout
+}
+
+func (c *Config) GetMaxRetries() int {
+	return c.maxRetries
 }
