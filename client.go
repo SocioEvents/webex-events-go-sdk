@@ -15,7 +15,7 @@ const VERSION = "0.1.0"
 func Query(query string, operationName string, variables map[string]any, headers map[string]string) (Response, error) {
 
 	if len(GetAccessToken()) < 1 {
-		return Response{}, errors.New("Access Token is required")
+		return Response{}, errors.New("Access Token is required.")
 	}
 
 	var requestBody = make(map[string]any)

@@ -21,7 +21,7 @@ func Test_getUserAgent(t *testing.T) {
 }
 
 func TestGetRequestUrl(t *testing.T) {
-	SetAccessToken("sk_test_some_access_token")
+	SetAccessToken("sk_test_some_access_token1")
 	var got = GetRequestUrl()
 	var want = "https://public.sandbox-api.socio.events/graphql"
 
@@ -33,7 +33,7 @@ func TestGetRequestUrl(t *testing.T) {
 
 	assert.Equal(t, got, want)
 
-	SetAccessToken("sk_live_some_access_token")
+	SetAccessToken("sk_live_some_access_token1")
 	got = GetRequestUrl()
 	want = "https://public.api.socio.events/graphql"
 
