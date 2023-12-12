@@ -62,6 +62,7 @@ func Query(query string, operationName string, variables map[string]any, headers
 	var rateLimiter = RateLimiter{}
 	fillRateLimiter(resp, &rateLimiter)
 
+	var errorResponse ErrorResponse
 	var response = Response{
 		Status:         resp.StatusCode,
 		Headers:        resp.Header,
@@ -72,6 +73,10 @@ func Query(query string, operationName string, variables map[string]any, headers
 		RetryCount:     0,
 		TimeSpentInMs:  elapsed,
 		RateLimiter:    rateLimiter,
+	}
+	err = fillErrorResponse(&response, &errorResponse)
+	if err != nil {
+		return response, err
 	}
 	return response, nil
 }

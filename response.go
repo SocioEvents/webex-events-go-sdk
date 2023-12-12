@@ -12,4 +12,5 @@ type Response struct {
 	RetryCount     int
 	TimeSpentInMs  time.Duration
 	RateLimiter    RateLimiter
+	ErrorResponse  ErrorResponse
 }
