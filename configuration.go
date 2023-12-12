@@ -2,9 +2,11 @@ package main
 
 import "time"
 
-var accessToken string
-var timeout = time.Duration(30)
-var maxRetries uint
+var (
+	accessToken string
+	timeout     = time.Duration(30)
+	maxRetries  uint
+)
 
 func SetAccessToken(token string) {
 	accessToken = token
