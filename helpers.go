@@ -33,7 +33,7 @@ func GetRequestUrl() string {
 	return uri
 }
 
-func GetUserAgent() string {
+func getUserAgent() string {
 	if len(userAgent) > 0 {
 		return userAgent
 	}

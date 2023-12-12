@@ -4,7 +4,7 @@ import "time"
 
 var accessToken string
 var timeout = time.Duration(30)
-var maxRetries int
+var maxRetries uint
 
 func SetAccessToken(token string) {
 	accessToken = token
@@ -14,7 +14,7 @@ func SetTimeout(_timeout time.Duration) {
 	timeout = _timeout
 }
 
-func SetMaxRetries(_maxRetries int) {
+func SetMaxRetries(_maxRetries uint) {
 	maxRetries = _maxRetries
 }
 
@@ -26,6 +26,6 @@ func GetTimeout() time.Duration {
 	return timeout
 }
 
-func GetMaxRetries() int {
+func GetMaxRetries() uint {
 	return maxRetries
 }

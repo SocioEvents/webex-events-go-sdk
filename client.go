@@ -37,7 +37,7 @@ func Query(query string, operationName string, variables map[string]any, headers
 	req.Header.Set("X-Sdk-Name", "Go SDK")
 	req.Header.Set("X-Sdk-Version", VERSION)
 	req.Header.Set("X-Sdk-Lang-Version", runtime.Version())
-	req.Header.Set("User-Agent", GetUserAgent())
+	req.Header.Set("User-Agent", getUserAgent())
 
 	var client = http.Client{Timeout: GetTimeout() * time.Second}
 	var start = time.Now()
@@ -56,18 +56,18 @@ func Query(query string, operationName string, variables map[string]any, headers
 	}
 
 	var rateLimiter = RateLimiter{}
-	FillRateLimiter(resp, &rateLimiter)
+	fillRateLimiter(resp, &rateLimiter)
 
 	var response = Response{
-		status:         resp.StatusCode,
-		headers:        resp.Header,
-		body:           string(bodyBytes),
-		requestHeaders: resp.Request.Header,
-		requestBody:    string(jsonBody),
-		url:            resp.Request.URL.String(),
-		retryCount:     0,
-		timeSpentInMs:  elapsed,
-		rateLimiter:    rateLimiter,
+		Status:         resp.StatusCode,
+		Headers:        resp.Header,
+		Body:           string(bodyBytes),
+		RequestHeaders: resp.Request.Header,
+		RequestBody:    string(jsonBody),
+		Url:            resp.Request.URL.String(),
+		RetryCount:     0,
+		TimeSpentInMs:  elapsed,
+		RateLimiter:    rateLimiter,
 	}
 	return response, nil
 }
