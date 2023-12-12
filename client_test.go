@@ -37,7 +37,7 @@ func TestWhenAccessTokenIsBlank(t *testing.T) {
 		Query:         query,
 		OperationName: operationName,
 		Variables:     variables,
-		headers:       headers,
+		Headers:       headers,
 	})
 
 	assert.Nil(t, response)
@@ -93,7 +93,7 @@ func TestQueryWith409StatusCode(t *testing.T) {
 		Query:         query,
 		OperationName: operationName,
 		Variables:     variables,
-		headers:       headers,
+		Headers:       headers,
 	})
 
 	assert.Equal(t, 2, response.RetryCount)
@@ -154,7 +154,7 @@ func TestQueryWith200StatusCode(t *testing.T) {
 		Query:         query,
 		OperationName: operationName,
 		Variables:     variables,
-		headers:       headers,
+		Headers:       headers,
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)

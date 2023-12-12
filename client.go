@@ -41,7 +41,7 @@ type QueryRequest struct {
 	Query         string
 	OperationName string
 	Variables     map[string]any
-	headers       http.Header
+	Headers       http.Header
 }
 
 func NewClient(config *Config) *Client {
@@ -79,7 +79,7 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 		return nil, err
 	}
 
-	req.Header = r.headers
+	req.Header = r.Headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.config.GetAccessToken())
 	req.Header.Set("X-Sdk-Name", "Go SDK")
