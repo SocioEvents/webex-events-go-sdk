@@ -19,11 +19,11 @@ const VERSION = "0.1.0"
 var AccessTokenRequiredError = errors.New("access token is required")
 var RetriableHttpStatuses = []int{408, 409, 429, 502, 503, 504}
 
-type BadRequestError struct {
+type BadResponseError struct {
 	response []byte
 }
 
-func (err BadRequestError) Error() string {
+func (err BadResponseError) Error() string {
 	return fmt.Sprintf("the provided JSON is not valid. provided body is:%s", string(err.response))
 }
 
@@ -172,6 +172,6 @@ func (c *Client) errorResponse(body []byte) (*ErrorResponse, error) {
 		}
 		return errorResponse, nil
 	} else {
-		return nil, BadRequestError{response: body}
+		return nil, BadResponseError{response: body}
 	}
 }

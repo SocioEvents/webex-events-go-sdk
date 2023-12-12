@@ -71,7 +71,7 @@ func Test_fillErrorResponseIfJSONisInvalid(t *testing.T) {
 	client := NewClient(config)
 
 	_, err := client.errorResponse([]byte(json))
-	assert.Error(t, err, BadRequestError{
+	assert.Error(t, err, BadResponseError{
 		response: []byte("malformed json"),
 	})
 	//assert.Errorf(t, err, "The provided JSON is not valid. Provided body is: malformed json")
