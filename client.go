@@ -59,6 +59,26 @@ func NewClient(config *Config) *Client {
 func (c *Client) SetHttpClient(httpClient HTTPClient) {
 	c.client = httpClient
 }
+
+func DoIntrospectionQuery(ctx context.Context, config *Config) (*Response, error) {
+	client := NewClient(config)
+	var headers = http.Header{}
+	var variables = make(map[string]any)
+	var r = QueryRequest{
+		OperationName: "IntrospectionQuery",
+		Headers:       headers,
+		Variables:     variables,
+		Query:         getIntrospectionQuery(),
+	}
+
+	var response, err = client.Query(ctx, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) {
 	if c.config.GetAccessToken() == "" {
 		return nil, AccessTokenRequiredError
