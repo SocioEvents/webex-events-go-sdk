@@ -8,21 +8,46 @@ Pre-built code modules will help access the APIs with your private keys, simplif
 Requirements
 -----------------
 
-TODO:
+Go 1.21+
 
 Installation
 -----------------
 
-TODO:
+`go get github.com/SocioEvents/webex-events-go-sdk`
 
 Configuration
 -----------------
 
-TODO:
+```go
+	ctx := context.Background()
+	config := NewConfig()
+	config.SetAccessToken("sk_live_your_access_token")
+	config.SetMaxRetries(3) // Default is 5
+	config.SetTimeout(time.Duration(10) * time.Second) // default is 30 seconds
+	var loggerHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
+	config.SetLoggerHandler(loggerHandler) // default is Error loglevel to stdout
+```
 
 Usage
 -----------------
-TODO:
+```go
+	client := NewClient(config)
+
+	var headers = http.Header{} // This is for mutation queries and is mandatory.
+
+	var variables = make(map[string]any)
+	var query = "query CurrenciesList{ currenciesList{ isoCode }}"
+	var operationName = "CurrenciesList"
+
+	queryRequest := QueryRequest{
+		Query:         query,
+		OperationName: operationName,
+		Variables:     variables,
+		Headers:       headers,
+	}
+	var response, err = client.Query(ctx, &queryRequest)
+	fmt.Println(response, err)
+```
 
 Idempotency
 -----------------
