@@ -45,7 +45,7 @@ def version_tag
 end
 
 def tag_version
-  sh %W[git tag -m Version\ #{get_version} #{version_tag}]
+  sh %W[git tag -m 'Version\ #{get_version}' #{version_tag}]
   Bundler.ui.confirm "Tagged #{version_tag}."
   yield if block_given?
 rescue RuntimeError
