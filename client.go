@@ -109,7 +109,7 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 				c.config.logger.Error("The request is going to be retried due to the fact that the server returned " + resp.Status + " status code.")
 			}
 			wait *= waitRate
-			c.config.logger.Info(fmt.Sprintf("Sleeping for %f ms...", wait))
+			c.config.logger.Info(fmt.Sprintf("Sleeping for %d ms...", int(wait)))
 			time.Sleep(time.Duration(wait) * time.Millisecond)
 			continue
 		}
