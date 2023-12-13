@@ -66,7 +66,6 @@ The SDK also validates the key on runtime, if it is not valid UUID token it will
 like the following:
 
 ```go
-	client := NewClient(config)
 	var headers = http.Header{}
 	headers.Set("Idempotency-Key", "61672155-56d3-4375-a864-52e7bba4f445") // This is only for mutations.
 
