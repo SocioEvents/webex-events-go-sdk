@@ -33,7 +33,7 @@ Usage
 ```go
 	client := NewClient(config)
 
-	var headers = http.Header{} // This is for mutation queries and is mandatory.
+	var headers = http.Header{}
 
 	var variables = make(map[string]any)
 	var query = "query CurrenciesList{ currenciesList{ isoCode }}"
@@ -60,7 +60,35 @@ To perform mutation request, you must add a header which contains the idempotenc
 The SDK also validates the key on runtime, if it is not valid UUID token it will raise an exception. Here is an example
 like the following:
 
-TODO:
+```go
+	client := NewClient(config)
+	var headers = http.Header{}
+	headers.Set("Idempotency-Key", "61672155-56d3-4375-a864-52e7bba4f445") // This is only for mutations.
+
+	var variables = map[string]any{
+		"input": map[string]any{
+			"ids":     []int{1, 2, 3},
+			"eventId": 1,
+		},
+	}
+	var query = `
+          mutation TrackDelete($input: TrackDeleteInput!) {
+            trackDelete(input: $input) {
+              success
+            }
+          }
+`
+	var operationName = "TrackDelete"
+
+	queryRequest := QueryRequest{
+		Query:         query,
+		OperationName: operationName,
+		Variables:     variables,
+		Headers:       headers,
+	}
+	var response, err = client.Query(ctx, &queryRequest)
+	fmt.Println(response, err)
+```
 
 Telemetry Data Collection
 -----------------

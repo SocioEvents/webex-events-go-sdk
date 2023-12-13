@@ -116,7 +116,7 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 		break
 	}
 
-	if resp.StatusCode > 299 {
+	if resp != nil && resp.StatusCode > 299 {
 		c.config.logger.Error(fmt.Sprintf("The request is failed. The request retried %d times but server returned %d status code", retries, resp.StatusCode))
 	}
 
