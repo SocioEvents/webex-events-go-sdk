@@ -108,17 +108,18 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 	req.Header.Set("X-Sdk-Lang-Version", runtime.Version())
 	req.Header.Set("User-Agent", getUserAgent())
 
-	var start = time.Now()
-	// Retry loop
-	var wait = 250.0
-	var waitRate = 1.4
-	var resp *http.Response
-	var retries = uint(0)
-
+	var (
+		start    = time.Now()
+		wait     = 250.0
+		waitRate = 1.4
+		resp     *http.Response
+		retries  = uint(0)
+	)
 	if c.config.maxRetries < 1 {
 		c.config.SetMaxRetries(5)
 	}
 
+	// Retry loop
 	c.config.logger.Info("The request to" + c.getRequestUrl() + " endpoint has been started.")
 	for ; retries < c.config.maxRetries; retries++ {
 		resp, err = c.client.Do(req)
