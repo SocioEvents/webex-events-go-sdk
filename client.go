@@ -60,8 +60,8 @@ func (c *Client) SetHttpClient(httpClient HTTPClient) {
 	c.client = httpClient
 }
 
-func DoIntrospectionQuery(ctx context.Context, config *Config) (*Response, error) {
-	client := NewClient(config)
+func (c *Client) DoIntrospectionQuery(ctx context.Context) (*Response, error) {
+	client := NewClient(c.config)
 	var headers = http.Header{}
 	var variables = make(map[string]any)
 	var r = QueryRequest{

@@ -19,7 +19,7 @@ Configuration
 -----------------
 
 ```go
-	ctx := context.Background()
+	var ctx = context.Background()
 	config := NewConfig()
 	config.SetAccessToken("sk_live_your_access_token")
 	config.SetMaxRetries(3) // Default is 5
@@ -31,8 +31,6 @@ Configuration
 Usage
 -----------------
 ```go
-	client := NewClient(config)
-
 	var headers = http.Header{}
 
 	var variables = make(map[string]any)
@@ -46,6 +44,13 @@ Usage
 		Headers:       headers,
 	}
 	var response, err = client.Query(ctx, &queryRequest)
+	fmt.Println(response, err)
+```
+
+For Introspection
+-----------------
+```go
+	var response, err = client.DoIntrospectionQuery(ctx)
 	fmt.Println(response, err)
 ```
 
