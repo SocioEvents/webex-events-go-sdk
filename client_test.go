@@ -7,8 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -49,6 +51,7 @@ func TestQueryWith409StatusCode(t *testing.T) {
 	config := NewConfig()
 	config.SetAccessToken("sk_live_some_access_token")
 	config.SetMaxRetries(3)
+	config.SetLoggerHandler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	client := NewClient(config)
 
 	var headers = http.Header{}
@@ -81,7 +84,7 @@ func TestQueryWith409StatusCode(t *testing.T) {
 			Header: header,
 			URL:    reqUrl,
 		},
-		Status:     "400",
+		Status:     "409",
 		StatusCode: 409,
 		Body:       body,
 	}
