@@ -79,15 +79,15 @@ func (c *Client) DoIntrospectionQuery(ctx context.Context) (*Response, error) {
 	return response, nil
 }
 
-func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) {
+func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Response, error) {
 	if c.config.GetAccessToken() == "" {
 		return nil, AccessTokenRequiredError
 	}
 
 	var requestBody = make(map[string]any)
-	requestBody["operationName"] = r.OperationName
-	requestBody["variables"] = r.Variables
-	requestBody["query"] = r.Query
+	requestBody["operationName"] = queryRequest.OperationName
+	requestBody["variables"] = queryRequest.Variables
+	requestBody["query"] = queryRequest.Query
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
 		c.config.logger.Error(err.Error())
@@ -100,7 +100,7 @@ func (c *Client) Query(ctx context.Context, r *QueryRequest) (*Response, error) 
 		return nil, err
 	}
 
-	req.Header = r.Headers
+	req.Header = queryRequest.Headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.config.GetAccessToken())
 	req.Header.Set("X-Sdk-Name", "Go SDK")
