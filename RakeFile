@@ -1,0 +1,86 @@
+# frozen_string_literal: true
+require 'rspec/core/rake_task'
+
+def install_tasks
+    namespace :release do
+      task :guard_clean do
+        clean? && committed? || raise("There are files that need to be committed first.")
+      end
+      task :source_control_push do
+        tag_version { git_push } unless already_tagged?
+      end
+    end
+
+    desc "Create tag #{version_tag} and push to Github\n"
+    task release: ['release:guard_clean', 'release:source_control_push'] do
+    end
+end
+
+def git_push
+  remote = default_remote
+  sh("git push #{remote} refs/heads/#{current_branch}".shellsplit)
+  sh("git push #{remote} refs/tags/#{version_tag}".shellsplit)
+  Bundler.ui.confirm "Pushed git commits and release tag."
+end
+
+def default_remote
+  remote_for_branch, status = sh_with_status(%W[git config --get branch.#{current_branch}.remote])
+  return "origin" unless status.success?
+
+  remote_for_branch.strip
+end
+
+def current_branch
+  sh(%w[git rev-parse --abbrev-ref HEAD]).gsub(%r{\Aheads/}, "").strip
+end
+
+def already_tagged?
+  return false unless sh(%w[git tag]).split(/\n/).include?(version_tag)
+  Bundler.ui.confirm "Tag #{version_tag} has already been created."
+  true
+end
+
+def version_tag
+  "v#{get_version}"
+end
+
+def tag_version
+  sh %W[git tag -m Version\ #{get_version} #{version_tag}]
+  Bundler.ui.confirm "Tagged #{version_tag}."
+  yield if block_given?
+rescue RuntimeError
+  Bundler.ui.error "Untagging #{version_tag} due to error."
+  sh_with_status %W[git tag -d #{version_tag}]
+  raise
+end
+
+def clean?
+  sh_with_status(%w[git diff --exit-code])[1].success?
+end
+
+def committed?
+  sh_with_status(%w[git diff-index --quiet --cached HEAD])[1].success?
+end
+
+def version_tag
+  "v#{get_version}"
+end
+
+def get_version
+  return @version if @version
+  content = File.read('client.go')
+  content.match(/const VERSION = "(.+)"/i)
+  @version = $1
+end
+
+def sh_with_status(cmd, &block)
+    Bundler.ui.debug(cmd)
+    outbuf = IO.popen(cmd, :err => [:child, :out], &:read)
+    status = $?
+    block&.call(outbuf) if status.success?
+    [outbuf, status]
+end
+
+
+install_tasks
+
