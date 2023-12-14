@@ -24,6 +24,6 @@ func Test_fillRateLimiter(t *testing.T) {
 	assert.Equal(t, rateLimiter.UsedDailyBasedCost, 10)
 	assert.Equal(t, rateLimiter.SecondBasedCostThreshold, 50)
 	assert.Equal(t, rateLimiter.UsedSecondBasedCost, 5)
-	assert.Equal(t, rateLimiter.DailyRetryAfter, 3)
-	assert.Equal(t, rateLimiter.SecondlyRetryAfter, 5)
+	assert.Equal(t, rateLimiter.DailyRetryAfterInSecond, 3)
+	assert.Equal(t, rateLimiter.SecondlyRetryAfterInMs, 5)
 }

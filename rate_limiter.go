@@ -16,8 +16,8 @@ type RateLimiter struct {
 	SecondBasedCostThreshold int
 	UsedDailyBasedCost       int
 	DailyBasedCostThreshold  int
-	DailyRetryAfter          int
-	SecondlyRetryAfter       int
+	DailyRetryAfterInSecond  int
+	SecondlyRetryAfterInMs   int
 }
 
 func NewRateLimiter() *RateLimiter {
@@ -41,11 +41,11 @@ func (rateLimiter *RateLimiter) fill(resp *http.Response) {
 
 	var dailyRetryAfter = resp.Header.Get(DailyRetryAfter)
 	if len(dailyRetryAfter) > 0 {
-		rateLimiter.DailyRetryAfter, _ = strconv.Atoi(dailyRetryAfter)
+		rateLimiter.DailyRetryAfterInSecond, _ = strconv.Atoi(dailyRetryAfter)
 	}
 
 	var secondlyRetryAfter = resp.Header.Get(SecondlyRetryAfter)
 	if len(secondlyRetryAfter) > 0 {
-		rateLimiter.SecondlyRetryAfter, _ = strconv.Atoi(secondlyRetryAfter)
+		rateLimiter.SecondlyRetryAfterInMs, _ = strconv.Atoi(secondlyRetryAfter)
 	}
 }
