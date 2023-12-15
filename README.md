@@ -22,7 +22,7 @@ Configuration
 	var ctx = context.Background()
 	config := NewConfig()
 	config.SetAccessToken("sk_live_your_access_token")
-	config.SetMaxRetries(3) // Default is 5
+	config.SetMaxRetries(5) // Default is 5
 	config.SetTimeout(time.Duration(10) * time.Second) // default is 30 seconds
 	var loggerHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
 	config.SetLoggerHandler(loggerHandler) // default is Error loglevel to stdout
