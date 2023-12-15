@@ -1,3 +1,6 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt)
+[![Webex Events](https://github.com/SocioEvents/webex-events-go-sdk/actions/workflows/go-test.yml/badge.svg)](https://github.com/SocioEvents/webex-events-go-sdk/actions)
+
 ⚠️ This library has not been released yet.
 # Webex Events Api Go SDK
 
