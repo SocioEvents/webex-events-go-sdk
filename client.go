@@ -49,9 +49,6 @@ func NewClient(config *Config) *Client {
 		config: config,
 	}
 
-	if c.config.GetTimeout() < (time.Duration(1) * time.Second) {
-		c.config.SetTimeout(time.Duration(30) * time.Second)
-	}
 	c.SetHttpClient(&http.Client{Timeout: config.GetTimeout() * time.Second})
 	return c
 }
@@ -115,26 +112,36 @@ func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Respon
 		resp     *http.Response
 		retries  = uint(0)
 	)
-	if c.config.maxRetries < 1 {
-		c.config.SetMaxRetries(5)
-	}
 
-	// Retry loop
 	c.config.logger.Info("The request to" + c.getRequestUrl() + " endpoint has been started.")
-	for ; retries < c.config.maxRetries; retries++ {
-		resp, err = c.client.Do(req)
-		if err != nil || slices.Contains(RetriableHttpStatuses, resp.StatusCode) {
+	resp, err = c.client.Do(req)
+	if isErrorOrServerError(err, resp) {
+		if c.config.maxRetries > 0 {
 			if err != nil {
 				c.config.logger.Error("The request is going to be retried. The error message is: " + err.Error())
 			} else {
 				c.config.logger.Error("The request is going to be retried due to the fact that the server returned " + resp.Status + " status code.")
 			}
+		}
+
+		// Retry loop
+		for ; retries < c.config.maxRetries; retries++ {
 			wait *= waitRate
 			c.config.logger.Info(fmt.Sprintf("Sleeping for %d ms...", int(wait)))
 			time.Sleep(time.Duration(wait) * time.Millisecond)
-			continue
+			resp, err = c.client.Do(req)
+			if isErrorOrServerError(err, resp) {
+				if (retries + 1) < c.config.maxRetries { // Has another retry.
+					if err != nil {
+						c.config.logger.Error("The request is going to be retried. The error message is: " + err.Error())
+					} else {
+						c.config.logger.Error("The request is going to be retried due to the fact that the server returned " + resp.Status + " status code.")
+					}
+				}
+				continue
+			}
+			break
 		}
-		break
 	}
 
 	if resp != nil && resp.StatusCode > 299 {
@@ -184,6 +191,10 @@ func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Respon
 	}
 
 	return response, nil
+}
+
+func isErrorOrServerError(err error, resp *http.Response) bool {
+	return err != nil || slices.Contains(RetriableHttpStatuses, resp.StatusCode)
 }
 
 func (c *Client) getRequestUrl() string {

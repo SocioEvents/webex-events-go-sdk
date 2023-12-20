@@ -15,7 +15,8 @@ type Config struct {
 
 func NewConfig() *Config {
 	var config = &Config{
-		timeout: time.Duration(30),
+		timeout:    time.Duration(30),
+		maxRetries: 5,
 	}
 
 	var handlerOptions = &slog.HandlerOptions{Level: slog.LevelWarn}
@@ -28,9 +29,6 @@ func (c *Config) SetAccessToken(token string) {
 }
 
 func (c *Config) SetTimeout(timeout time.Duration) {
-	if timeout < time.Duration(1)*time.Second {
-		panic("timeout must be greater than or equal to 1 second")
-	}
 	c.timeout = timeout
 }
 
