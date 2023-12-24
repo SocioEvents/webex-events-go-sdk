@@ -38,10 +38,10 @@ type Client struct {
 }
 
 type QueryRequest struct {
-	Query         string
-	OperationName string
-	Variables     map[string]any
-	Headers       http.Header
+	Query          string
+	OperationName  string
+	Variables      map[string]any
+	IdempotencyKey string
 }
 
 func NewClient(config *Config) *Client {
@@ -59,11 +59,9 @@ func (c *Client) SetHttpClient(httpClient HTTPClient) {
 
 func (c *Client) DoIntrospectionQuery(ctx context.Context) (*Response, error) {
 	client := NewClient(c.config)
-	var headers = http.Header{}
 	var variables = make(map[string]any)
 	var r = QueryRequest{
 		OperationName: "IntrospectionQuery",
-		Headers:       headers,
 		Variables:     variables,
 		Query:         getIntrospectionQuery(),
 	}
@@ -97,7 +95,7 @@ func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Respon
 		return nil, err
 	}
 
-	req.Header = queryRequest.Headers
+	req.Header = http.Header{}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.config.GetAccessToken())
 	req.Header.Set("X-Sdk-Name", "Go SDK")
@@ -105,6 +103,9 @@ func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Respon
 	req.Header.Set("X-Sdk-Lang-Version", runtime.Version())
 	req.Header.Set("User-Agent", getUserAgent())
 
+	if len(queryRequest.IdempotencyKey) > 0 {
+		req.Header.Set("Idempotency-Key", queryRequest.IdempotencyKey)
+	}
 	var (
 		start    = time.Now()
 		wait     = 250.0

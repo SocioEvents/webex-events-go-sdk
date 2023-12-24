@@ -34,9 +34,7 @@ Configuration
 Usage
 -----------------
 ```go
-	var headers = http.Header{}
-
-	var variables = make(map[string]any)
+    var variables = make(map[string]any)
 	var query = "query CurrenciesList{ currenciesList{ isoCode }}"
 	var operationName = "CurrenciesList"
 
@@ -44,7 +42,6 @@ Usage
 		Query:         query,
 		OperationName: operationName,
 		Variables:     variables,
-		Headers:       headers,
 	}
 	var response, err = client.Query(ctx, &queryRequest)
 	fmt.Println(response, err)
@@ -69,32 +66,30 @@ The SDK also validates the key on runtime, if it is not valid UUID token it will
 like the following:
 
 ```go
-	var headers = http.Header{}
-	headers.Set("Idempotency-Key", "61672155-56d3-4375-a864-52e7bba4f445") // This is only for mutations.
-
-	var variables = map[string]any{
-		"input": map[string]any{
-			"ids":     []int{1, 2, 3},
-			"eventId": 1,
-		},
-	}
-	var query = `
+var variables = map[string]any{
+    "input": map[string]any{
+    "ids":     []int{1, 2, 3},
+    "eventId": 1,
+    },
+}
+var query = `
           mutation TrackDelete($input: TrackDeleteInput!) {
             trackDelete(input: $input) {
               success
             }
           }
 `
-	var operationName = "TrackDelete"
+var operationName = "TrackDelete"
 
-	queryRequest := QueryRequest{
-		Query:         query,
-		OperationName: operationName,
-		Variables:     variables,
-		Headers:       headers,
-	}
-	var response, err = client.Query(ctx, &queryRequest)
-	fmt.Println(response, err)
+queryRequest := QueryRequest{
+	Query:         query,
+    OperationName: operationName,
+    Variables:     variables,
+    IdempotencyKey: "61672155-56d3-4375-a864-52e7bba4f445",
+}
+var response, err = client.Query(ctx, &queryRequest)
+fmt.Println(response, err)
+
 ```
 
 Telemetry Data Collection

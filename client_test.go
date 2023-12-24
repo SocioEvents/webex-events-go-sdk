@@ -31,7 +31,6 @@ func TestWhenAccessTokenIsBlank(t *testing.T) {
 	client := NewClient(config)
 
 	var variables = make(map[string]any)
-	headers := http.Header{}
 	var query = "{ currenciesList{ isoCode }}"
 	var operationName = "CurrenciesList"
 
@@ -39,7 +38,6 @@ func TestWhenAccessTokenIsBlank(t *testing.T) {
 		Query:         query,
 		OperationName: operationName,
 		Variables:     variables,
-		Headers:       headers,
 	})
 
 	assert.Nil(t, response)
@@ -93,10 +91,10 @@ func TestQueryWith409StatusCode(t *testing.T) {
 	client.SetHttpClient(httpClient)
 
 	response, err := client.Query(ctx, &QueryRequest{
-		Query:         query,
-		OperationName: operationName,
-		Variables:     variables,
-		Headers:       headers,
+		Query:          query,
+		OperationName:  operationName,
+		Variables:      variables,
+		IdempotencyKey: "61672155-56d3-4375-a864-52e7bba4f445",
 	})
 
 	assert.Equal(t, 2, response.RetryCount)
@@ -154,10 +152,10 @@ func TestQueryWith200StatusCode(t *testing.T) {
 	client.SetHttpClient(httpClient)
 
 	response, err := client.Query(ctx, &QueryRequest{
-		Query:         query,
-		OperationName: operationName,
-		Variables:     variables,
-		Headers:       headers,
+		Query:          query,
+		OperationName:  operationName,
+		Variables:      variables,
+		IdempotencyKey: "61672155-56d3-4375-a864-52e7bba4f445",
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
