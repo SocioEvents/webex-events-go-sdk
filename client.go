@@ -178,7 +178,7 @@ func (c *Client) Query(ctx context.Context, queryRequest *QueryRequest) (*Respon
 		RequestHeaders: resp.Request.Header,
 		RequestBody:    string(jsonBody),
 		Url:            resp.Request.URL.String(),
-		RetryCount:     int(retries) - 1,
+		RetryCount:     int(retries),
 		TimeSpentInMs:  elapsed,
 		RateLimiter:    rateLimiter,
 	}

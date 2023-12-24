@@ -97,7 +97,7 @@ func TestQueryWith409StatusCode(t *testing.T) {
 		IdempotencyKey: "61672155-56d3-4375-a864-52e7bba4f445",
 	})
 
-	assert.Equal(t, 2, response.RetryCount)
+	assert.Equal(t, 3, response.RetryCount)
 }
 
 func TestQueryWith200StatusCode(t *testing.T) {
