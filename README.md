@@ -62,8 +62,7 @@ the request without risk of creating a second object or performing the update tw
 
 To perform mutation request, you must add a header which contains the idempotency key such as
 `Idempotency-Key: <your key>`. The SDK does not produce an Idempotency Key on behalf of you if it is missed.
-The SDK also validates the key on runtime, if it is not valid UUID token it will raise an exception. Here is an example
-like the following:
+Here is an example like the following:
 
 ```go
 var variables = map[string]any{
